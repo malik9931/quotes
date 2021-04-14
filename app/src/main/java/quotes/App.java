@@ -5,29 +5,89 @@ package quotes;
 
 import com.google.gson.Gson;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Random;
 
 public class App {
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) {
+        String apiURL = "http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en";
+//        String apiURL = "http://ron-swanson-quotes.herokuapp.com/v2/quotes";
 
+        try {
+            URL url = new URL(apiURL);
+            String jsonData = getJsonFromAPI(url);
+            ApiQuote apiQuote = getAPIQuoteAsObject(jsonData);
+
+
+
+        }catch (MalformedURLException ex){
+            ex.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static ApiQuote getAPIQuoteAsObject(String jsonData) {
         Gson gson = new Gson();
-        //Read the JSON File
+        ApiQuote apiQuote = gson.fromJson(jsonData,ApiQuote.class);
+        return  apiQuote;
+    }
+
+    private static String getJsonFromAPI(URL url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        int status = connection.getResponseCode();
+        String content = "";
+        if(status == 200){
+            BufferedReader reader = getBufferedReader(connection);
+            content = getContent(reader);
+            reader.close();
+        }else {
+            System.out.println("Error in API");
+            Gson gson = new Gson();
+//        //Read the JSON File
         Reader reader = new FileReader("app/src/main/resources/recentquotes.json");
         RecentQuotes[] convertedObject = gson.fromJson(reader, RecentQuotes[].class);
 
+        int randomNum = getRandomNum();
+        for (int i = 0; i < convertedObject.length; i++) {
+//            System.out.println(convertedObject.length);
+            System.out.println(convertedObject[randomNum]);
+            break;
+        }
+        }
+        connection.disconnect();
+        return content;
+    }
+
+    private static String getContent(BufferedReader reader) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        String currentLine = reader.readLine();
+
+        while (currentLine != null){
+            builder.append(currentLine);
+            currentLine = reader.readLine();
+        }
+        return builder.toString();
+    }
+
+    private static BufferedReader getBufferedReader(HttpURLConnection connection) throws IOException {
+        InputStream inputStream = connection.getInputStream();
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+        return new BufferedReader(inputStreamReader);
+    }
+
+    private static int getRandomNum() {
         Random r = new Random();
         int low = 0;
         int high = 137;
         int result = r.nextInt(high-low) + low;
-        for (int i = 0; i < convertedObject.length; i++) {
-//            System.out.println(convertedObject.length);
-            System.out.println(convertedObject[0]);
-            break;
-        }
-
+        return result;
     }
 }

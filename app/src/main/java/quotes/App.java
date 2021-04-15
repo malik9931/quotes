@@ -4,6 +4,7 @@
 package quotes;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -41,12 +42,17 @@ public class App {
     private static String getJsonFromAPI(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.29 Safari/537.36");
 
         int status = connection.getResponseCode();
         String content = "";
         if(status == 200){
             BufferedReader reader = getBufferedReader(connection);
             content = getContent(reader);
+            System.out.println(content);
+//            JsonObject newQuoteObj = new JsonObject();
+//            newQuoteObj.(content,);
+
             reader.close();
         }else {
             System.out.println("Error in API");
